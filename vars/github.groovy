@@ -3,7 +3,7 @@ def getPullRequestDetails(Map config = [:]) {
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}",
         httpMode: 'GET',
         customHeaders: [
-            "Authorization": "Bearer ${config.accessToken}"
+            [name: 'Authorization', value: "Bearer ${config.accessToken}"]
         ]
     )
 
@@ -11,7 +11,7 @@ def getPullRequestDetails(Map config = [:]) {
     println response.content
 
     if (response.status == 200) {
-        println "Pull request deatils found."
+        println 'Pull request deatils found.'
         return readJSON(text: response.content)
     } else {
         error "Failed to fetch pull request details: ${response.status} - ${response.content}"
@@ -23,8 +23,8 @@ def mergePullRequest(Map config = [:]) {
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}/merge",
         httpMode: 'PUT',
         customHeaders: [
-            "Authorization": "Bearer ${config.accessToken}",
-            "Accept": "application/vnd.github+json"
+            [name: 'Authorization', value: "Bearer ${config.accessToken}"],
+            [name: 'Accept', value: 'application/vnd.github+json'],
         ]
     )
 
