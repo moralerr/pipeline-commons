@@ -24,8 +24,8 @@ def mergePullRequest(Map config = [:]) {
         httpMode: 'PUT',
         headers: [
             Authorization: "Bearer ${config.accessToken}"
-        ],
-        requestBody: '{"merge_method": "merge"}'
+            Accept: "application/vnd.github+json"
+        ]
     )
 
     if (response.status == 200 || response.status == 201) {
