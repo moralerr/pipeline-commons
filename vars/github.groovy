@@ -3,7 +3,7 @@ def getPullRequestDetails(Map config = [:]) {
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}",
         httpMode: 'GET',
         headers: [
-            Authorization: "Bearer ${accessToken}"
+            Authorization: "Bearer ${config.accessToken}"
         ]
     )
 
