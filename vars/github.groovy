@@ -2,7 +2,7 @@ def getPullRequestDetails(Map config = [:]) {
     def response = httpRequest(
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}",
         httpMode: 'GET',
-        headers: [
+        customHeaders: [
             Authorization: "Bearer ${config.accessToken}"
         ]
     )
@@ -22,7 +22,7 @@ def mergePullRequest(Map config = [:]) {
     def response = httpRequest(
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}/merge",
         httpMode: 'PUT',
-        headers: [
+        customHeaders: [
             Authorization: "Bearer ${config.accessToken}",
             Accept: "application/vnd.github+json"
         ]
