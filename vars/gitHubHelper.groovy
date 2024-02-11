@@ -10,7 +10,7 @@ def getPullRequestDetails(String apiUrl, String accessToken, String owner, Strin
     )
 
     if (response.status == 200) {
-        return readJSON text: response.content
+        return readJSON(response.content)
     } else {
         error "Failed to fetch pull request details: ${response.status} - ${response.content}"
     }
