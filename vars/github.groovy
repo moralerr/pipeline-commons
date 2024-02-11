@@ -7,9 +7,6 @@ def getPullRequestDetails(Map config = [:]) {
         ]
     )
 
-    println response.status
-    println response.content
-
     if (response.status == 200) {
         println 'Pull request deatils found.'
         return readJSON(text: response.content)
