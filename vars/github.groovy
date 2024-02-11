@@ -1,6 +1,6 @@
-def getPullRequestDetails(String apiUrl, String accessToken, String owner, String repo, int pullRequestId) {
+def getPullRequestDetails(Map config = [:]) {
     def response = httpRequest(
-        url: "${apiUrl}/repos/${owner}/${repo}/pulls/${pullRequestId}",
+        url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}",
         httpMode: 'GET',
         headers: [
             Authorization: "Bearer ${accessToken}"
@@ -14,12 +14,12 @@ def getPullRequestDetails(String apiUrl, String accessToken, String owner, Strin
     }
 }
 
-def mergePullRequest(String apiUrl, String accessToken, String owner, String repo, int pullRequestId) {
+def mergePullRequest(Map config = [:]) {
     def response = httpRequest(
-        url: "${apiUrl}/repos/${owner}/${repo}/pulls/${pullRequestId}/merge",
+        url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}/merge",
         httpMode: 'PUT',
         headers: [
-            Authorization: "Bearer ${accessToken}"
+            Authorization: "Bearer ${config.accessToken}"
         ],
         requestBody: '{"merge_method": "merge"}'
     )
