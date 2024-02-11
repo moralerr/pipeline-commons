@@ -1,10 +1,11 @@
 // vars/githubHelper.groovy
 
-class GithubHelper {
+class GitHubHelper {
+
     String apiUrl
     String accessToken
 
-    GithubHelper(String apiUrl, String accessToken) {
+    GitHubHelper(String apiUrl, String accessToken) {
         this.apiUrl = apiUrl
         this.accessToken = accessToken
     }
@@ -41,4 +42,5 @@ class GithubHelper {
             error "Failed to merge pull request: ${response.status} - ${response.content}"
         }
     }
+
 }
