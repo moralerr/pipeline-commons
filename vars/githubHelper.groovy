@@ -1,10 +1,10 @@
 // vars/githubHelper.groovy
 
-class githubHelper {
+class GithubHelper {
     String apiUrl
     String accessToken
 
-    githubHelper(String apiUrl, String accessToken) {
+    GithubHelper(String apiUrl, String accessToken) {
         this.apiUrl = apiUrl
         this.accessToken = accessToken
     }
