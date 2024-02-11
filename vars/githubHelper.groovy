@@ -4,7 +4,7 @@ class githubHelper {
     String apiUrl
     String accessToken
 
-    GitHubHelper(String apiUrl, String accessToken) {
+    githubHelper(String apiUrl, String accessToken) {
         this.apiUrl = apiUrl
         this.accessToken = accessToken
     }
