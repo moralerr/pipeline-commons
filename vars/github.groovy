@@ -23,7 +23,7 @@ def mergePullRequest(Map config = [:]) {
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls/${config.pullRequestId}/merge",
         httpMode: 'PUT',
         headers: [
-            Authorization: "Bearer ${config.accessToken}"
+            Authorization: "Bearer ${config.accessToken}",
             Accept: "application/vnd.github+json"
         ]
     )
