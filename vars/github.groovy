@@ -22,7 +22,8 @@ def mergePullRequest(Map config = [:]) {
         customHeaders: [
             [name: 'Authorization', value: "Bearer ${config['accessToken']}", maskValue: true],
             [name: 'Accept', value: 'application/vnd.github+json'],
-        ]
+        ],
+        requestBody: '{"commit_title":"${config.title}","commit_message":"${config.message}"}'
     )
 
     if (response.status == 200 || response.status == 201) {
