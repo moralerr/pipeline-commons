@@ -8,7 +8,8 @@ def getPullRequestDetails(Map config = [:]) {
     )
 
     if (response.status == 200) {
-        return readJSON(response.content)
+        println "Pull request deatils found."
+        return readJSON text: response.content
     } else {
         error "Failed to fetch pull request details: ${response.status} - ${response.content}"
     }
