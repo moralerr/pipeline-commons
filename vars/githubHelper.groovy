@@ -22,7 +22,7 @@ class GitHubHelper {
         if (response.status == 200) {
             return readJSON(response.content)
         } else {
-            error "Failed to fetch pull request details: ${response.status} - ${response.content}"
+            error "Failed to fetch pull request details: ${response.status} - ${response.content}."
         }
     }
 
