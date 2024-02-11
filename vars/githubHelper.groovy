@@ -1,5 +1,3 @@
-// vars/githubHelper.groovy
-
 def getPullRequestDetails(String apiUrl, String accessToken, String owner, String repo, int pullRequestId) {
     def response = httpRequest(
         url: "${apiUrl}/repos/${owner}/${repo}/pulls/${pullRequestId}",
