@@ -23,13 +23,32 @@ def parseYamlToMap(yamlString) {
         return [:]
     }
 
-    try {
-        def parsedMap = yamlSlurper.parseText(yamlString)
-        return parsedMap ?: [:]
-    } catch (Exception e) {
-        error("Failed to parse YAML: ${e.message}")
-        return [:]
+    def parsedMap = [:]
+    def lines = yamlString.split('\n')
+    def currentMap = parsedMap
+    def currentIndent = -1
+
+    lines.each { line ->
+        def indent = line.takeWhile { it == ' ' }.size()
+        def keyValuePair = line.trim()
+
+        if (indent > currentIndent) {
+            if (keyValuePair.endsWith(':')) {
+                keyValuePair = keyValuePair[0..-2]
+            }
+            def key = keyValuePair.takeWhile { it != ':' }
+            def value = keyValuePair.dropWhile { it != ':' }.drop(1).trim()
+
+            currentMap[key] = value == '' ? [:] : value
+            currentMap = currentMap[key]
+            currentIndent = indent
+        } else {
+            currentMap = parsedMap
+            currentIndent = -1
+        }
     }
+
+    return parsedMap
 }
 
 // Helper method for null and empty check
