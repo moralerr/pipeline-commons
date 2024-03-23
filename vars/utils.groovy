@@ -1,4 +1,4 @@
-def dockerBuild(String imageName, String registryUrl, String tag = 'latest', String imageNameOverride = imageName) {
+def dockerBuildAndPush(String imageName, String registryUrl, String tag = 'latest', String imageNameOverride = imageName) {
     if (isNullOrEmpty(imageName)) {
         throw new IllegalArgumentException("imageName cannot be null or empty")
     }
@@ -11,6 +11,7 @@ def dockerBuild(String imageName, String registryUrl, String tag = 'latest', Str
     sh """
     docker build -t ${fullImageName} .
     docker tag ${fullImageName} ${registryImageName}
+    docker push ${registryImageName}
     """
 
     return registryImageName
