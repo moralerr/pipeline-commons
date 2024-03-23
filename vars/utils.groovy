@@ -1,4 +1,4 @@
-def dockerBuild(String imageName, String tag = 'latest', String registryUrl, String imageNameOverride = imageName) {
+def dockerBuild(String imageName, String registryUrl, String tag = 'latest', String imageNameOverride = imageName) {
     if (isNullOrEmpty(imageName)) {
         throw new IllegalArgumentException("imageName cannot be null or empty")
     }
@@ -14,44 +14,6 @@ def dockerBuild(String imageName, String tag = 'latest', String registryUrl, Str
     """
 
     return registryImageName
-}
-
-def dockerPush() {
-
-    sh "docker push ${REGISTRY_NAME}/${REGISTRY_REPO}:${IMAGE_NAME}-${IMAGE_VERSION}"
-
-}
-
-def mergeYamlFiles(argumentYamlFile) {
-    def defaultYaml = new File('default.yaml').text // Read default YAML content
-    def argumentYaml = new File(argumentYamlFile).text // Read argument YAML content
-
-    // Function to parse YAML string to a Groovy map
-    def parseYamlToMap(String yamlString) {
-        def yamlMap = new Expando() // Create an expandable map
-        yamlString.split("\n").findAll { it.trim() }.each { line ->
-            def (key, value) = line.split(":").collect { it.trim() }
-            if (value.startsWith("---")) {
-                return // Skip document separators (for multi-doc YAML)
-            }
-            if (value.startsWith("- ")) {
-                // Handle list entries
-                def existingList = yamlMap.get(key) ?: []
-                existingList << value.substring(2).trim()
-                yamlMap[key] = existingList
-            } else {
-                yamlMap[key] = value
-            }
-        }
-        return yamlMap
-    }
-
-    // Merge maps, giving precedence to argumentYaml
-    def mergedMap = new Expando()
-    mergedMap.putAll(parseYamlToMap(defaultYaml))
-    mergedMap.putAll(parseYamlToMap(argumentYaml))
-
-    return mergedMap
 }
 
 // Helper method for null and empty check
