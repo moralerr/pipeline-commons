@@ -17,6 +17,22 @@ def dockerBuildAndPush(String imageName, String registryUrl, String tag = 'lates
     return registryImageName
 }
 
+def parseYamlToMap(yamlString) {
+    if (yamlString == null || yamlString.trim().isEmpty()) {
+        error("YAML string is empty or null.")
+        return [:]
+    }
+
+    try {
+        def yamlParser = new groovy.yaml.Yaml()
+        def parsedMap = yamlParser.load(yamlString)
+        return parsedMap ?: [:]
+    } catch (Exception e) {
+        error("Failed to parse YAML: ${e.message}")
+        return [:]
+    }
+}
+
 // Helper method for null and empty check
 static def isNullOrEmpty(String str) {
     return str == null || str.isEmpty()
