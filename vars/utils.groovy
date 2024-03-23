@@ -26,30 +26,34 @@ def parseYamlToMap(yamlString) {
     def parsedMap = [:]
     def lines = yamlString.split('\n')
     def currentMap = parsedMap
-    def currentIndent = -1
+    def stack = []
 
     lines.each { line ->
         def indent = line.takeWhile { it == ' ' }.size()
         def keyValuePair = line.trim()
 
-        if (indent > currentIndent) {
-            if (keyValuePair.endsWith(':')) {
-                keyValuePair = keyValuePair[0..-2]
-            }
+        if (keyValuePair) {
             def key = keyValuePair.takeWhile { it != ':' }
             def value = keyValuePair.dropWhile { it != ':' }.drop(1).trim()
 
-            currentMap[key] = value == '' ? [:] : value
-            currentMap = currentMap[key]
-            currentIndent = indent
-        } else {
-            currentMap = parsedMap
-            currentIndent = -1
+            if (indent == 0) {
+                parsedMap[key] = value == '' ? [:] : value
+                currentMap = parsedMap
+                stack = []
+            } else {
+                while (stack.size() >= indent) {
+                    stack.pop()
+                }
+                stack << key
+                currentMap = stack.inject(parsedMap) { map, k -> map[k] }
+                currentMap[key] = value == '' ? [:] : value
+            }
         }
     }
 
     return parsedMap
 }
+
 
 // Helper method for null and empty check
 static def isNullOrEmpty(String str) {
