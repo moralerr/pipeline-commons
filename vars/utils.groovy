@@ -24,7 +24,6 @@ def parseYamlToMap(yamlString) {
     }
 
     try {
-        def yamlSlurper = new groovy.util.YamlSlurper()
         def parsedMap = yamlSlurper.parseText(yamlString)
         return parsedMap ?: [:]
     } catch (Exception e) {
