@@ -6,7 +6,7 @@ def dockerBuild(String imageName, String registryUrl, String tag = 'latest', Str
         throw new IllegalArgumentException("registryUrl cannot be null or empty")
     }
     String fullImageName = "${imageName}:${tag}" // Optional
-    String registryImageName = "${registryUrl}/${imageNameOverride}-${tag}"
+    String registryImageName = "${registryUrl}:${imageNameOverride}-${tag}"
 
     sh """
     docker build -t ${fullImageName} .
