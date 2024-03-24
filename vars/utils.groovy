@@ -27,11 +27,41 @@ Map merge(Map[] sources) {
         result
     }
 }
+
 Map expandMap(Map source, String delimiter = '.') {
     source?.inject([:]) { result, key, value ->
         if (value instanceof Map) value = expandMap(value)
         if (value instanceof Collection) value = value.collect { it instanceof Map ? expandMap(it) : it }
         merge(result, key.toString().tokenize(delimiter).reverse().inject(value) { current, token -> [(token): current] })
+    }
+}
+
+Object injectValues(Object source, Map values) {
+    if (source instanceof Map) {
+        source.collectEntries { key, value -> [(injectValues(key, values)): injectValues(value, values)] }
+    } else if (source instanceof List) {
+        source.collect { injectValues(it, values) }
+    } else if (source instanceof String && source.contains('$')) {
+        def placeholder = source =~ /^\$\{([^}]+)}$/
+        if (placeholder.find()) {
+            evaluateOrDefault(placeholder.group(1), values, placeholder.group())
+        } else {
+            source.replaceAll(~/\$\{([^}]+)}/) { evaluateOrDefault(it[1], values, it[0]) }
+        }
+    } else {
+        source
+    }
+}
+
+Object evaluateOrDefault(String expression, Map values, Object defaultValue) {
+    try {
+        def replaced = new GroovyShell(new Binding(values)).evaluate(expression)
+        (replaced != null) ? replaced : defaultValue
+    } catch (NullPointerException e) {
+        defaultValue
+    } catch (e) {
+        log.debug('Ignored exception parsing expression "{}": {}', expression, e.getMessage())
+        defaultValue
     }
 }
 
