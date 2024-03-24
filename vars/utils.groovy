@@ -17,42 +17,24 @@ def dockerBuildAndPush(String imageName, String registryUrl, String tag = 'lates
     return registryImageName
 }
 
-def parseYamlToMap(yamlString) {
-    if (yamlString == null || yamlString.trim().isEmpty()) {
-        error("YAML string is empty or null.")
-        return [:]
-    }
-
-    def parsedMap = [:]
-    def lines = yamlString.split('\n')
-    def currentMap = parsedMap
-    def stack = []
-
-    lines.each { line ->
-        def indent = line.takeWhile { it == ' ' }.size()
-        def keyValuePair = line.trim()
-
-        if (keyValuePair) {
-            def key = keyValuePair.takeWhile { it != ':' }
-            def value = keyValuePair.dropWhile { it != ':' }.drop(1).trim()
-
-            if (indent == 0) {
-                parsedMap[key] = value == '' ? [:] : value
-                currentMap = parsedMap
-                stack = []
-            } else {
-                while (stack.size() >= indent) {
-                    stack.pop()
-                }
-                stack << key
-                currentMap = stack.inject(parsedMap) { map, k -> map[k] }
-                currentMap[key] = value == '' ? [:] : value
-            }
+Map merge(Map[] sources) {
+    if (!sources) return [:]
+    if (sources.length == 1) return sources[0]
+    sources.inject([:]) { result, map ->
+        map.each { key, value ->
+            result[key] = (result[key] instanceof Map && value instanceof Map) ? merge(result[key], value) : value
         }
+        result
     }
-
-    return parsedMap
 }
+Map expandMap(Map source, String delimiter = '.') {
+    source?.inject([:]) { result, key, value ->
+        if (value instanceof Map) value = expandMap(value)
+        if (value instanceof Collection) value = value.collect { it instanceof Map ? expandMap(it) : it }
+        merge(result, key.toString().tokenize(delimiter).reverse().inject(value) { current, token -> [(token): current] })
+    }
+}
+
 
 
 // Helper method for null and empty check
