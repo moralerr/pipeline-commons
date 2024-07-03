@@ -5,7 +5,7 @@ def dockerBuild(String imageName, String tag = 'latest', String registryUrl, Str
     if (isNullOrEmpty(registryUrl)) {
         throw new IllegalArgumentException("registryUrl cannot be null or empty")
     }
-    String fullImageName = "${imageName}:${tag}" // Optional
+    String fullImageName = "${imageName}:${tag}"
     String registryImageName = "${registryUrl}/${imageNameOverride}-${tag}"
 
     sh """
@@ -16,29 +16,27 @@ def dockerBuild(String imageName, String tag = 'latest', String registryUrl, Str
     return registryImageName
 }
 
-def dockerPush() {
+def dockerPush(String registryName, String registryRepo, String imageName, String imageVersion) {
+    if (isNullOrEmpty(registryName) || isNullOrEmpty(registryRepo) || isNullOrEmpty(imageName) || isNullOrEmpty(imageVersion)) {
+        throw new IllegalArgumentException("All parameters must be provided and cannot be null or empty")
+    }
 
-    sh "docker push ${REGISTRY_NAME}/${REGISTRY_REPO}:${IMAGE_NAME}-${IMAGE_VERSION}"
-
+    sh "docker push ${registryName}/${registryRepo}:${imageName}-${imageVersion}"
 }
 
-def mergeYamlFiles(argumentYamlFile) {
-    def defaultYaml = new File('default.yaml').text // Read default YAML content
-    def argumentYaml = new File(argumentYamlFile).text // Read argument YAML content
+def mergeYamlFiles(String argumentYamlFile) {
+    def defaultYaml = new File('default.yaml').text
+    def argumentYaml = new File(argumentYamlFile).text
 
-    // Function to parse YAML string to a Groovy map
     def parseYamlToMap(String yamlString) {
-        def yamlMap = new Expando() // Create an expandable map
+        def yamlMap = [:]
         yamlString.split("\n").findAll { it.trim() }.each { line ->
             def (key, value) = line.split(":").collect { it.trim() }
-            if (value.startsWith("---")) {
-                return // Skip document separators (for multi-doc YAML)
+            if (value?.startsWith("---")) {
+                return
             }
-            if (value.startsWith("- ")) {
-                // Handle list entries
-                def existingList = yamlMap.get(key) ?: []
-                existingList << value.substring(2).trim()
-                yamlMap[key] = existingList
+            if (value?.startsWith("- ")) {
+                yamlMap[key] = yamlMap.getOrDefault(key, []) + value.substring(2).trim()
             } else {
                 yamlMap[key] = value
             }
@@ -46,15 +44,26 @@ def mergeYamlFiles(argumentYamlFile) {
         return yamlMap
     }
 
-    // Merge maps, giving precedence to argumentYaml
-    def mergedMap = new Expando()
-    mergedMap.putAll(parseYamlToMap(defaultYaml))
+    def mergedMap = parseYamlToMap(defaultYaml)
     mergedMap.putAll(parseYamlToMap(argumentYaml))
 
     return mergedMap
 }
 
-// Helper method for null and empty check
 static def isNullOrEmpty(String str) {
     return str == null || str.isEmpty()
 }
+
+def dockerImageExists(String imageName, String tag = 'latest') {
+    def result = sh(script: "docker images -q ${imageName}:${tag}", returnStdout: true).trim()
+    return !isNullOrEmpty(result)
+}
+
+def dockerPull(String imageName, String tag = 'latest') {
+    sh "docker pull ${imageName}:${tag}"
+}
+
+def dockerRemoveImage(String imageName, String tag = 'latest') {
+    sh "docker rmi ${imageName}:${tag}"
+}
+
