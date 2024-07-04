@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 def dockerBuild(String imageName, String tag = 'latest', String registryUrl, String imageNameOverride = imageName) {
     if (isNullOrEmpty(imageName)) {
         throw new IllegalArgumentException("imageName cannot be null or empty")
@@ -40,9 +42,9 @@ def mergeYamlFiles(String argumentYamlFile) {
             } else {
                 yamlMap[key] = value
             }
-        }
-        return yamlMap
     }
+        return yamlMap
+}
 
     def mergedMap = parseYamlToMap(defaultYaml)
     mergedMap.putAll(parseYamlToMap(argumentYaml))
@@ -67,3 +69,84 @@ def dockerRemoveImage(String imageName, String tag = 'latest') {
     sh "docker rmi ${imageName}:${tag}"
 }
 
+def getLatestJenkinsHelmChartVersion() {
+    def response = httpRequest(
+        url: "https://api.github.com/repos/jenkinsci/helm-charts/releases/latest",
+        httpMode: 'GET',
+        customHeaders: [
+            [name: 'Accept', value: 'application/vnd.github.v3+json']
+        ]
+    )
+
+    if (response.status == 200) {
+        def json = new JsonSlurper().parseText(response.content)
+        return json.tag_name.replaceAll('^v', '') // Remove the 'v' prefix if present
+    } else {
+        error "Failed to fetch latest Jenkins Helm chart version: ${response.status} - ${response.content}"
+    }
+}
+
+def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, String accessToken) {
+    def response = httpRequest(
+        url: "https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}",
+        httpMode: 'GET',
+        customHeaders: [
+            [name: 'Authorization', value: "Bearer ${accessToken}", maskValue: true],
+            [name: 'Accept', value: 'application/vnd.github.v3+json']
+        ]
+    )
+
+    if (response.status == 200) {
+        def json = new JsonSlurper().parseText(response.content)
+        def fileContent = new String(json.content.decodeBase64())
+        def versionMatcher = fileContent =~ /version:\s*(.*)/
+        def dependencyMatcher = fileContent =~ /- name: jenkins\s*version:\s*(.*)/
+        if (versionMatcher.find() && dependencyMatcher.find()) {
+            return [
+                chartVersion: versionMatcher.group(1).trim(),
+                dependencyVersion: dependencyMatcher.group(1).trim()
+            ]
+        } else {
+            error "Failed to extract versions from Chart.yaml"
+        }
+    } else {
+        error "Failed to fetch Chart.yaml: ${response.status} - ${response.content}"
+    }
+}
+
+def updateHelmChartInfo(String filePath, String newVersion, String newDependencyVersion) {
+    def file = new File(filePath)
+    def content = file.text
+    content = content.replaceFirst(/version:\s*.*/, "version: ${newVersion}")
+    content = content.replaceFirst(/- name: jenkins\s*version:\s*.*/, "- name: jenkins\n  version: ${newDependencyVersion}")
+    file.text = content
+}
+
+def incrementMinorVersion(String version) {
+    def (major, minor, patch) = version.tokenize('.').collect { it.toInteger() }
+    return "${major}.${minor + 1}.${patch}"
+}
+
+def createPullRequest(Map config) {
+    def response = httpRequest(
+        url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls",
+        httpMode: 'POST',
+        customHeaders: [
+            [name: 'Authorization', value: "Bearer ${config.accessToken}", maskValue: true],
+            [name: 'Accept', value: 'application/vnd.github.v3+json']
+        ],
+        requestBody: writeJSON(returnText: true, json: [
+            title: config.title,
+            head: config.headBranch,
+            base: config.baseBranch,
+            body: config.body
+        ])
+    )
+
+    if (response.status == 201) {
+        println 'Pull request created successfully.'
+        return readJSON(text: response.content)
+    } else {
+        error "Failed to create pull request: ${response.status} - ${response.content}"
+    }
+}
