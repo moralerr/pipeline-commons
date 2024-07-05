@@ -124,7 +124,7 @@ def createPullRequest(Map config) {
 
     if (response.status == 201) {
         println 'Pull request created successfully.'
-        return readJSON(text: response.content)
+        return new JsonSlurper().parseText(response.content)
     } else {
         error "Failed to create pull request: ${response.status} - ${response.content}"
     }
