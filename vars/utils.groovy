@@ -55,11 +55,16 @@ def getLatestJenkinsHelmChartVersion() {
 
     if (response.status == 200) {
         def json = new JsonSlurper().parseText(response.content)
-        return json.tag_name.replaceAll('^v', '') // Remove the 'v' prefix if present
+        def latestVersion = json.tag_name.replaceAll('^v', '') // Remove the 'v' prefix if present
+        if (latestVersion.startsWith("jenkins-")) {
+            latestVersion = latestVersion.replaceFirst(/^jenkins-/, '')
+        }
+        return latestVersion
     } else {
         error "Failed to fetch latest Jenkins Helm chart version: ${response.status} - ${response.content}"
     }
 }
+
 
 def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, String accessToken) {
     filePath = filePath.trim()
@@ -101,8 +106,9 @@ def updateHelmChartInfo(String filePath, String newVersion, String newDependency
 
 def incrementMinorVersion(String version) {
     def (major, minor, patch) = version.tokenize('.').collect { it.toInteger() }
-    return "${major}.${minor + 1}.${patch}"
+    return "${major}.${minor + 1}.0" // Reset patch version to 0
 }
+
 
 def createPullRequest(Map config) {
     def jsonPayload = JsonOutput.toJson([
