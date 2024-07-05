@@ -43,8 +43,6 @@ def dockerRemoveImage(String imageName, String tag = 'latest') {
     sh "docker rmi ${imageName}:${tag}"
 }
 
-import groovy.json.JsonSlurper
-
 def getLatestJenkinsHelmChartVersion() {
     def response = httpRequest(
         url: "https://api.github.com/repos/jenkinsci/helm-charts/releases/latest",
@@ -95,6 +93,7 @@ def updateHelmChartInfo(String filePath, String newVersion, String newDependency
     filePath = filePath.trim()
     println "Updating file at path: ${filePath}"
     def file = new File("charts\/jenkins\/Chart.yaml")
+    println file
     if (!file.exists()) {
         error "File not found: ${filePath}"
     }
