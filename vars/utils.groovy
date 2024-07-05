@@ -92,16 +92,12 @@ def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, 
 def updateHelmChartInfo(String filePath, String newVersion, String newDependencyVersion) {
     filePath = filePath.trim()
     println "Updating file at path: ${filePath}"
-    def file = new File("charts\/jenkins\/Chart.yaml")
-    println file
-    if (!file.exists()) {
-        error "File not found: ${filePath}"
-    }
-    def content = file.text
+    def content = readFile(filePath)
     content = content.replaceFirst(/version:\s*.*/, "version: ${newVersion}")
     content = content.replaceFirst(/- name: jenkins\s*version:\s*.*/, "- name: jenkins\n  version: ${newDependencyVersion}")
-    file.text = content
+    writeFile(file: filePath, text: content)
 }
+
 
 def incrementMinorVersion(String version) {
     def (major, minor, patch) = version.tokenize('.').collect { it.toInteger() }
