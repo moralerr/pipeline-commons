@@ -26,32 +26,6 @@ def dockerPush(String registryName, String registryRepo, String imageName, Strin
     sh "docker push ${registryName}/${registryRepo}:${imageName}-${imageVersion}"
 }
 
-def mergeYamlFiles(String argumentYamlFile) {
-    def defaultYaml = new File('default.yaml').text
-    def argumentYaml = new File(argumentYamlFile).text
-
-    def parseYamlToMap(String yamlString) {
-        def yamlMap = [:]
-        yamlString.split("\n").findAll { it.trim() }.each { line ->
-            def (key, value) = line.split(":").collect { it.trim() }
-            if (value?.startsWith("---")) {
-                return
-            }
-            if (value?.startsWith("- ")) {
-                yamlMap[key] = yamlMap.getOrDefault(key, []) + value.substring(2).trim()
-            } else {
-                yamlMap[key] = value
-            }
-    }
-        return yamlMap
-}
-
-    def mergedMap = parseYamlToMap(defaultYaml)
-    mergedMap.putAll(parseYamlToMap(argumentYaml))
-
-    return mergedMap
-}
-
 static def isNullOrEmpty(String str) {
     return str == null || str.isEmpty()
 }
