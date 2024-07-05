@@ -1,3 +1,4 @@
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 def dockerBuild(String imageName, String tag = 'latest', String registryUrl, String imageNameOverride = imageName) {
@@ -98,13 +99,19 @@ def updateHelmChartInfo(String filePath, String newVersion, String newDependency
     writeFile(file: filePath, text: content)
 }
 
-
 def incrementMinorVersion(String version) {
     def (major, minor, patch) = version.tokenize('.').collect { it.toInteger() }
     return "${major}.${minor + 1}.${patch}"
 }
 
 def createPullRequest(Map config) {
+    def jsonPayload = JsonOutput.toJson([
+        title: config.title,
+        head: config.headBranch,
+        base: config.baseBranch,
+        body: config.body
+    ])
+
     def response = httpRequest(
         url: "${config.apiUrl}/repos/${config.owner}/${config.repo}/pulls",
         httpMode: 'POST',
@@ -112,12 +119,7 @@ def createPullRequest(Map config) {
             [name: 'Authorization', value: "Bearer ${config.accessToken}", maskValue: true],
             [name: 'Accept', value: 'application/vnd.github.v3+json']
         ],
-        requestBody: writeJSON(returnText: true, json: [
-            title: config.title,
-            head: config.headBranch,
-            base: config.baseBranch,
-            body: config.body
-        ])
+        requestBody: jsonPayload
     )
 
     if (response.status == 201) {
