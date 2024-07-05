@@ -61,6 +61,7 @@ def getLatestJenkinsHelmChartVersion() {
 }
 
 def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, String accessToken) {
+    filePath = filePath.trim()
     def response = httpRequest(
         url: "https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}",
         httpMode: 'GET',
@@ -89,8 +90,12 @@ def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, 
 }
 
 def updateHelmChartInfo(String filePath, String newVersion, String newDependencyVersion) {
-    sh "ls -lrat"
-    def file = new File(filePath.trim())
+    filePath = filePath.trim()
+    println "Updating file at path: ${filePath}"
+    def file = new File(filePath)
+    if (!file.exists()) {
+        error "File not found: ${filePath}"
+    }
     def content = file.text
     content = content.replaceFirst(/version:\s*.*/, "version: ${newVersion}")
     content = content.replaceFirst(/- name: jenkins\s*version:\s*.*/, "- name: jenkins\n  version: ${newDependencyVersion}")
@@ -125,4 +130,6 @@ def createPullRequest(Map config) {
         error "Failed to create pull request: ${response.status} - ${response.content}"
     }
 }
+
+
 
