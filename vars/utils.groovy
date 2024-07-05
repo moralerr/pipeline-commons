@@ -89,7 +89,8 @@ def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, 
 }
 
 def updateHelmChartInfo(String filePath, String newVersion, String newDependencyVersion) {
-    def file = new File(filePath)
+    sh "ls -lrat"
+    def file = new File(filePath.trim())
     def content = file.text
     content = content.replaceFirst(/version:\s*.*/, "version: ${newVersion}")
     content = content.replaceFirst(/- name: jenkins\s*version:\s*.*/, "- name: jenkins\n  version: ${newDependencyVersion}")
