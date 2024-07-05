@@ -94,7 +94,7 @@ def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, 
 def updateHelmChartInfo(String filePath, String newVersion, String newDependencyVersion) {
     filePath = filePath.trim()
     println "Updating file at path: ${filePath}"
-    def file = new File(filePath)
+    def file = new File("charts/jenkins/Chart.yaml")
     if (!file.exists()) {
         error "File not found: ${filePath}"
     }
