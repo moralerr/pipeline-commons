@@ -43,6 +43,8 @@ def dockerRemoveImage(String imageName, String tag = 'latest') {
     sh "docker rmi ${imageName}:${tag}"
 }
 
+import groovy.json.JsonSlurper
+
 def getLatestJenkinsHelmChartVersion() {
     def response = httpRequest(
         url: "https://api.github.com/repos/jenkinsci/helm-charts/releases/latest",
@@ -130,6 +132,7 @@ def createPullRequest(Map config) {
         error "Failed to create pull request: ${response.status} - ${response.content}"
     }
 }
+
 
 
 
