@@ -136,6 +136,21 @@ def createPullRequest(Map config) {
     }
 }
 
+def replaceTemplateStringsInYamlContent(String yamlContent) {
+    // Replace template strings with environment variables
+    def processedContent = yamlContent.replaceAll(/\$\{env\.(\w+)\}/) { match, envVar ->
+        def envValue = System.getenv(envVar)
+        return envValue != null ? envValue : match
+    }
+    return processedContent
+}
+
+def logMapReadable(Map map) {
+    map.each { key, value ->
+        println "${key}: ${value}"
+    }
+}
+
 
 
 
