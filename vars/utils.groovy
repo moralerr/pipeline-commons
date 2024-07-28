@@ -3,10 +3,10 @@ import groovy.json.JsonSlurper
 
 def dockerBuild(String imageName, String tag = 'latest', String registryUrl, String imageNameOverride = imageName) {
     if (isNullOrEmpty(imageName)) {
-        throw new IllegalArgumentException("imageName cannot be null or empty")
+        throw new IllegalArgumentException('imageName cannot be null or empty')
     }
     if (isNullOrEmpty(registryUrl)) {
-        throw new IllegalArgumentException("registryUrl cannot be null or empty")
+        throw new IllegalArgumentException('registryUrl cannot be null or empty')
     }
     String fullImageName = "${imageName}:${tag}"
     String registryImageName = "${registryUrl}/${imageNameOverride}-${tag}"
@@ -21,7 +21,7 @@ def dockerBuild(String imageName, String tag = 'latest', String registryUrl, Str
 
 def dockerPush(String registryName, String registryRepo, String imageName, String imageVersion) {
     if (isNullOrEmpty(registryName) || isNullOrEmpty(registryRepo) || isNullOrEmpty(imageName) || isNullOrEmpty(imageVersion)) {
-        throw new IllegalArgumentException("All parameters must be provided and cannot be null or empty")
+        throw new IllegalArgumentException('All parameters must be provided and cannot be null or empty')
     }
 
     sh "docker push ${registryName}/${registryRepo}:${imageName}-${imageVersion}"
@@ -46,7 +46,7 @@ def dockerRemoveImage(String imageName, String tag = 'latest') {
 
 def getLatestJenkinsHelmChartVersion() {
     def response = httpRequest(
-        url: "https://api.github.com/repos/jenkinsci/helm-charts/releases/latest",
+        url: 'https://api.github.com/repos/jenkinsci/helm-charts/releases/latest',
         httpMode: 'GET',
         customHeaders: [
             [name: 'Accept', value: 'application/vnd.github.v3+json']
@@ -56,7 +56,7 @@ def getLatestJenkinsHelmChartVersion() {
     if (response.status == 200) {
         def json = new JsonSlurper().parseText(response.content)
         def latestVersion = json.tag_name.replaceAll('^v', '') // Remove the 'v' prefix if present
-        if (latestVersion.startsWith("jenkins-")) {
+        if (latestVersion.startsWith('jenkins-')) {
             latestVersion = latestVersion.replaceFirst(/^jenkins-/, '')
         }
         return latestVersion
@@ -64,7 +64,6 @@ def getLatestJenkinsHelmChartVersion() {
         error "Failed to fetch latest Jenkins Helm chart version: ${response.status} - ${response.content}"
     }
 }
-
 
 def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, String accessToken) {
     filePath = filePath.trim()
@@ -88,7 +87,7 @@ def getCurrentHelmChartInfo(String repoOwner, String repoName, String filePath, 
                 dependencyVersion: dependencyMatcher.group(1).trim()
             ]
         } else {
-            error "Failed to extract versions from Chart.yaml"
+            error 'Failed to extract versions from Chart.yaml'
         }
     } else {
         error "Failed to fetch Chart.yaml: ${response.status} - ${response.content}"
@@ -108,7 +107,6 @@ def incrementMinorVersion(String version) {
     def (major, minor, patch) = version.tokenize('.').collect { it.toInteger() }
     return "${major}.${minor + 1}.0" // Reset patch version to 0
 }
-
 
 def createPullRequest(Map config) {
     def jsonPayload = JsonOutput.toJson([
@@ -141,16 +139,29 @@ def replaceTemplateStringsInYamlContent(String yamlContent) {
     def processedContent = yamlContent.replaceAll(/\$\{env\.(\w+)\}/) { match, envVar ->
         def envValue = System.getenv(envVar)
         return envValue != null ? envValue : match
-    }
+}
+    logMapReadable(processedContent)
     return processedContent
 }
 
-def logMapReadable(Map map) {
+def logMapReadable(Map map, int indentLevel = 0) {
     map.each { key, value ->
-        println "${key}: ${value}"
+        def indent = '  ' * indentLevel
+        if (value instanceof Map) {
+            println "${indent}${key}:"
+            logMapReadable(value, indentLevel + 1)
+        } else if (value instanceof List) {
+            println "${indent}${key}:"
+            value.each { item ->
+                if (item instanceof Map || item instanceof List) {
+                    println "${indent}  -"
+                    logMapReadable(item, indentLevel + 2)
+                } else {
+                    println "${indent}  - ${item}"
+                }
+            }
+        } else {
+            println "${indent}${key}: ${value}"
+        }
     }
 }
-
-
-
-
