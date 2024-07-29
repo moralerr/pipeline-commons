@@ -136,15 +136,7 @@ def createPullRequest(Map config) {
 
 // Function to replace template strings in YAML content
 def replaceTemplateStringsInYamlContent(String yamlContent) {
-    // Replace template strings with environment variables
-    def matcher = yamlContent =~ /\$\{env\.(\w+)\}/
-    def processedContent = matcher.replaceAll { match ->
-        def envVar = match[1]
-        def envValue = env[envVar]
-        return envValue != null ? envValue : match[0]
-    }
-    logMapReadable(processedContent)
-    return processedContent
+    echo 'test'
 }
 
 def logMapReadable(Map map, int indentLevel = 0) {
