@@ -135,7 +135,7 @@ def createPullRequest(Map config) {
 }
 
 // Function to replace template strings in YAML content
-def replaceTemplateStringsInYamlContent(String yamlContent) {
+def replaceTemplateStringsInYamlContent(Map yamlContent) {
     echo 'test'
 }
 
